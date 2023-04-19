@@ -4,6 +4,7 @@
 #include <vector>
 #include <queue>
 #include <algorithm>
+#pragma omp parallel for
 
 using namespace std;
 
@@ -92,7 +93,8 @@ void sortFile(const string &inputFilename, const string &outputFilename)
     vector<string> chunkFiles;
     ifstream input(inputFilename);
     int chunkNum = 0;
-    while (!input.eof())
+    #pragma omp parallel for
+    for (int i = 0; !input.eof(); ++i)
     {
         auto chunk = readChunk(input);
         if (chunk.empty())
@@ -100,8 +102,8 @@ void sortFile(const string &inputFilename, const string &outputFilename)
             break;
         }
         sort(chunk.begin(), chunk.end(), [](const auto &kv1, const auto &kv2)
-             { return kv1.key < kv2.key; });
-        string chunkFilename = "chunk_" + to_string(chunkNum++) + ".txt";
+             { return kv1.value < kv2.value; });
+        string chunkFilename = "chunk_" + to_string(i) + ".txt";
         ofstream chunkFile(chunkFilename);
         writeChunk(chunkFile, chunk);
         chunkFiles.push_back(chunkFilename);
@@ -114,10 +116,10 @@ void sortFile(const string &inputFilename, const string &outputFilename)
     }
 }
 
+
 // Test the implementation
 int main()
 {
-    sortFile("mockdata.txt", "output.txt");
+    sortFile("sort-rand-199999999.txt", "output.txt");
     return 0;
 }
-
